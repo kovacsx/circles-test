@@ -86,21 +86,59 @@ void calculateInitialRadius(const list<pair<double, double>> &coords, double a, 
 
 }
 
-bool calculateBestCircle(const list<pair<double, double>> &coords, double &a, double &b, double &r) {
+void calculateBestCenter(const list<pair<double, double>> &coords, double &a, double &b) {
+    const double STEP_RATIO_MINUS = 0.999;
+    const double STEP_RATIO_PLUS = 1.0 + (1.0 - STEP_RATIO_MINUS);
+    
+    double d = calculateTotalDistance(coords, a, b, 0);
+
+    cout << "Initial distance: " << d << endl;
+
+    double na = a;
+    double nb = b;
+    double nd = d;
+
+    long long iterations = 0;
+
+    do {
+        a = na;
+        b = nb;
+        d = nd;
+
+        na = a * STEP_RATIO_MINUS;
+        nb = b * STEP_RATIO_MINUS;        
+        nd = calculateTotalDistance(coords, na, nb, 0);
+        if(nd < d) continue;
+
+        na = a * STEP_RATIO_MINUS;
+        nb = b * STEP_RATIO_PLUS;        
+        nd = calculateTotalDistance(coords, na, nb, 0);
+        if(nd < d) continue;
+
+        na = a * STEP_RATIO_PLUS;
+        nb = b * STEP_RATIO_MINUS;        
+        nd = calculateTotalDistance(coords, na, nb, 0);
+        if(nd < d) continue;
+
+        na = a * STEP_RATIO_PLUS;
+        nb = b * STEP_RATIO_PLUS;        
+        nd = calculateTotalDistance(coords, na, nb, 0);
+        if(nd < d) continue;
+
+        iterations++;
+
+    } while (nd < d);
+
+    cout << "Total position iterations: " << iterations << endl;
+    cout << "Best distance: " << d << endl;
+
+    cout << "calculateBestCenter (" << a << "," << b << ")" << endl;
+
+}
+
+void calculateBestRadius(const list<pair<double, double>> &coords, double &a, double &b, double &r) {
 
     const double STEP_RATIO = 0.999;
-
-    cout << "Total points: " << coords.size() << endl;
-
-    if(coords.empty()) {
-        a = 0;
-        b = 0;
-        r = 0;
-        return true;
-    }
-
-    calculateInitialCenter(coords, a, b);
-    calculateInitialRadius(coords, a, b, r);
 
     double d = calculateTotalDistance(coords, a, b, r);
 
@@ -120,7 +158,25 @@ bool calculateBestCircle(const list<pair<double, double>> &coords, double &a, do
 
     } while (nd < d && r > 0.0);
 
-    cout << "Total iterations: " << iterations << endl;
+    cout << "Total radius iterations: " << iterations << endl;
+}
+
+bool calculateBestCircle(const list<pair<double, double>> &coords, double &a, double &b, double &r) {
+
+
+    cout << "Total points: " << coords.size() << endl;
+
+    if(coords.empty()) {
+        a = 0;
+        b = 0;
+        r = 0;
+        return true;
+    }
+
+    calculateInitialCenter(coords, a, b);
+    calculateBestCenter(coords, a, b);
+    calculateInitialRadius(coords, a, b, r);
+    calculateBestRadius(coords, a, b, r);
 
     return true;
 }
